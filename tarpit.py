@@ -6,7 +6,7 @@
 ## I have shamelessly smashed together here
 ##
 
-
+import argparse
 import asyncio
 import random
 
@@ -19,8 +19,8 @@ async def ssh_handler(_reader, writer):
     except ConnectionResetError:
         pass
 
-async def ssh_tarpit():
-    server = await asyncio.start_server(ssh_handler, '0.0.0.0', 2222)
+async def ssh_tarpit(port=2222):
+    server = await asyncio.start_server(ssh_handler, '0.0.0.0', port)
     async with server:
         await server.serve_forever()
 
@@ -37,12 +37,42 @@ async def http_handler(_reader, writer):
     except ConnectionResetError:
         pass
 
-async def http_tarpit():
-    server = await asyncio.start_server(http_handler, '0.0.0.0', 8080)
+async def http_tarpit(port=8080):
+    server = await asyncio.start_server(http_handler, '0.0.0.0', port)
     async with server:
         await server.serve_forever()
 
 
-asyncio.run(ssh_tarpit())
-asyncio.run(http_tarpit())
+
+def main():
+    parser = argparse.ArgumentParser(description='Tarpit for various services', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--verbose', '-v', action='store_true')
+
+    parser.add_argument('--ssh',    action='store_true', help='enable the SSH tarpit')
+    parser.add_argument('--ssh-port', action='store', type=int, default='2222', help='serve the SSH tarpit on the specified port', metavar='port')
+
+    parser.add_argument('--http',    action='store_true', help='enable the HTTP tarpit')
+    parser.add_argument('--http-port',  action='store', type=int, default='8080', help='serve the HTTP tarpit on the specified port', metavar='port')
+
+    args = parser.parse_args()
+
+    if not (args.ssh or args.http):
+        parser.error('No action requested.')
+
+
+    if(args.ssh):
+        if(args.verbose):
+           print("Dispatching SSH") 
+        asyncio.run(ssh_tarpit(args.ssh_port))
+
+    if(args.http):
+        if(args.verbose):
+           print("Dispatching HTTP") 
+        asyncio.run(http_tarpit(args.http_port))
+
+
+
+
+if __name__ == '__main__':
+    main()
 
