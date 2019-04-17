@@ -52,9 +52,6 @@ async def smtp_handler(_reader, writer):
             await writer.drain()
     except ConnectionResetError:
         pass
-    except LimitOverrunError:
-        # Don't care, we're discarding it
-        pass
 
 async def smtp_tarpit(port):
     server = await asyncio.start_server(smtp_handler, '0.0.0.0', port, limit=1024)
