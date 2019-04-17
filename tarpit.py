@@ -43,7 +43,6 @@ async def http_tarpit(port=8080):
         await server.serve_forever()
 
 
-
 def main():
     parser = argparse.ArgumentParser(description='Tarpit for various services', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--verbose', '-v', action='store_true')
@@ -60,15 +59,21 @@ def main():
         parser.error('No action requested.')
 
 
+    tasks = list()
+
     if(args.ssh):
         if(args.verbose):
            print("Dispatching SSH") 
-        asyncio.run(ssh_tarpit(args.ssh_port))
+        tasks.append(ssh_tarpit(args.ssh_port))
 
     if(args.http):
         if(args.verbose):
            print("Dispatching HTTP") 
-        asyncio.run(http_tarpit(args.http_port))
+        tasks.append(http_tarpit(args.http_port))
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(asyncio.wait(tasks))
+
 
 
 
