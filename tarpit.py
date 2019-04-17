@@ -19,7 +19,7 @@ async def ssh_handler(_reader, writer):
     except ConnectionResetError:
         pass
 
-async def ssh_tarpit(port=2222):
+async def ssh_tarpit(port):
     server = await asyncio.start_server(ssh_handler, '0.0.0.0', port)
     async with server:
         await server.serve_forever()
@@ -29,7 +29,7 @@ async def http_handler(_reader, writer):
     writer.write(b'HTTP/1.1 200 OK\r\n')
     try:
         while True:
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
             header = random.randint(0, 2**32)
             value = random.randint(0, 2**32)
             writer.write(b'X-%x: %x\r\n' % (header, value))
@@ -37,8 +37,27 @@ async def http_handler(_reader, writer):
     except ConnectionResetError:
         pass
 
-async def http_tarpit(port=8080):
+async def http_tarpit(port):
     server = await asyncio.start_server(http_handler, '0.0.0.0', port)
+    async with server:
+        await server.serve_forever()
+
+async def smtp_handler(_reader, writer):
+    # Fake up our header
+    writer.write(b'220-%x\r\n' % random.randint(0,2**32))
+    try:
+        while True:
+            await asyncio.sleep(10)
+            writer.write(b'220-%x\r\n' % random.randint(0, 2**32))
+            await writer.drain()
+    except ConnectionResetError:
+        pass
+    except LimitOverrunError:
+        # Don't care, we're discarding it
+        pass
+
+async def smtp_tarpit(port):
+    server = await asyncio.start_server(smtp_handler, '0.0.0.0', port, limit=1024)
     async with server:
         await server.serve_forever()
 
@@ -53,9 +72,12 @@ def main():
     parser.add_argument('--http',    action='store_true', help='enable the HTTP tarpit')
     parser.add_argument('--http-port',  action='store', type=int, default='8080', help='serve the HTTP tarpit on the specified port', metavar='port')
 
+    parser.add_argument('--smtp',    action='store_true', help='enable the SMTP tarpit')
+    parser.add_argument('--smtp-port',  action='store', type=int, default='2525', help='serve the SMTP tarpit on the specified port', metavar='port')
+
     args = parser.parse_args()
 
-    if not (args.ssh or args.http):
+    if not (args.ssh or args.http or args.smtp):
         parser.error('No action requested.')
 
 
@@ -70,6 +92,11 @@ def main():
         if(args.verbose):
            print("Dispatching HTTP") 
         tasks.append(http_tarpit(args.http_port))
+
+    if(args.smtp):
+        if(args.verbose):
+           print("Dispatching SMTP")
+        tasks.append(smtp_tarpit(args.smtp_port))
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(asyncio.wait(tasks))
