@@ -10,6 +10,7 @@ import argparse
 import asyncio
 import random
 
+
 async def ssh_handler(_reader, writer):
     try:
         while True:
@@ -23,7 +24,6 @@ async def ssh_tarpit(port):
     server = await asyncio.start_server(ssh_handler, '0.0.0.0', port)
     async with server:
         await server.serve_forever()
-
 
 async def http_handler(_reader, writer):
     writer.write(b'HTTP/1.1 200 OK\r\n')
@@ -58,41 +58,48 @@ async def smtp_tarpit(port):
     async with server:
         await server.serve_forever()
 
-
-def main():
+def parse_args():
     parser = argparse.ArgumentParser(description='Tarpit for various services', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--verbose', '-v', action='store_true')
 
-    parser.add_argument('--ssh',    action='store_true', help='enable the SSH tarpit')
-    parser.add_argument('--ssh-port', action='store', type=int, default='2222', help='serve the SSH tarpit on the specified port', metavar='port')
+    parser.add_argument('--verbose', '-v',  action='count', default=0)
 
-    parser.add_argument('--http',    action='store_true', help='enable the HTTP tarpit')
-    parser.add_argument('--http-port',  action='store', type=int, default='8080', help='serve the HTTP tarpit on the specified port', metavar='port')
+    parser.add_argument('--mode', '-m',     action='store', required=True, nargs='+', choices=['ssh','http','smtp', 'all'], help='enable the specified tarpit(s)')
 
-    parser.add_argument('--smtp',    action='store_true', help='enable the SMTP tarpit')
-    parser.add_argument('--smtp-port',  action='store', type=int, default='2525', help='serve the SMTP tarpit on the specified port', metavar='port')
+    parser.add_argument('--ssh-port',       action='store', type=int, default=2222, help='serve the SSH tarpit on the specified port', metavar='port')
+
+    parser.add_argument('--http-port',      action='store', type=int, default=8080, help='serve the HTTP tarpit on the specified port', metavar='port')
+
+    parser.add_argument('--smtp-port',      action='store', type=int, default=2525, help='serve the SMTP tarpit on the specified port', metavar='port')
 
     args = parser.parse_args()
 
-    if not (args.ssh or args.http or args.smtp):
-        parser.error('No action requested.')
+    return parser.parse_args()
 
 
+
+def main():
     tasks = list()
+    args = parse_args()
 
-    if(args.ssh):
-        if(args.verbose):
-           print("Dispatching SSH") 
+    if('ssh' in args.mode or 'all' in args.mode):
+        if(args.verbose >= 1):
+           print("SSH tarpit enabled")
+        if(args.verbose >= 2):
+           print("SSH listening on port %d" % args.ssh_port)
         tasks.append(ssh_tarpit(args.ssh_port))
 
-    if(args.http):
-        if(args.verbose):
-           print("Dispatching HTTP") 
+    if('http' in args.mode or 'all' in args.mode):
+        if(args.verbose >= 1):
+           print("HTTP tarpit enabled")
+        if(args.verbose >= 2):
+           print("HTTP listening on port %d" % args.http_port)
         tasks.append(http_tarpit(args.http_port))
 
-    if(args.smtp):
-        if(args.verbose):
-           print("Dispatching SMTP")
+    if('smtp' in args.mode or 'all' in args.mode):
+        if(args.verbose >= 1):
+           print("SMTP tarpit enabled")
+        if(args.verbose >= 2):
+           print("SMTP listening on port %d" % args.smtp_port)
         tasks.append(smtp_tarpit(args.smtp_port))
 
     loop = asyncio.get_event_loop()
