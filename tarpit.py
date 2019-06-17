@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 
 ##
 ## Inspired by the post https://nullprogram.com/blog/2019/03/22/. All credit to 
@@ -15,7 +15,7 @@ verbosity = 0
 async def ssh_handler(_reader, writer):
     if (verbosity >= 1):
         addr = writer.get_extra_info('peername')
-        print(f"SSH connected: {addr!r}")
+        print(f'SSH connected: {addr!r}')
 
     try:
         while True:
@@ -24,11 +24,11 @@ async def ssh_handler(_reader, writer):
             await writer.drain()
     except ConnectionResetError:
         if (verbosity >= 1):
-            print(f"SSH disconnected: {addr!r}")
+            print(f'SSH disconnected: {addr!r}')
 
 async def ssh_tarpit(port):
     if(verbosity >= 1):
-      print(f"SSH tarpit enabled on port {port}")
+      print(f'SSH tarpit enabled on port {port}')
 
     server = await asyncio.start_server(ssh_handler, '0.0.0.0', port)
     async with server:
@@ -37,7 +37,7 @@ async def ssh_tarpit(port):
 async def http_handler(_reader, writer):
     if (verbosity >= 1):
         addr = writer.get_extra_info('peername')
-        print(f"HTTP connected: {addr!r}")
+        print(f'HTTP connected: {addr!r}')
 
     writer.write(b'HTTP/1.1 200 OK\r\n')
     try:
@@ -49,11 +49,11 @@ async def http_handler(_reader, writer):
             await writer.drain()
     except ConnectionResetError:
         if (verbosity >= 1):
-            print(f"HTTP disconnected: {addr!r}")
+            print(f'HTTP disconnected: {addr!r}')
 
 async def http_tarpit(port):
     if(verbosity >= 1):
-      print(f"HTTP tarpit enabled on port {port}")
+      print(f'HTTP tarpit enabled on port {port}')
 
     server = await asyncio.start_server(http_handler, '0.0.0.0', port)
     async with server:
@@ -62,7 +62,7 @@ async def http_tarpit(port):
 async def smtp_handler(_reader, writer):
     if (verbosity >= 1):
         addr = writer.get_extra_info('peername')
-        print(f"SMTP connected: {addr!r}")
+        print(f'SMTP connected: {addr!r}')
     writer.write(b'220-%x\r\n' % random.randint(0,2**32))
 
     try:
@@ -72,11 +72,11 @@ async def smtp_handler(_reader, writer):
             await writer.drain()
     except ConnectionResetError:
         if (verbosity >= 1):
-            print(f"SMTP disconnected: {addr!r}")
+            print(f'SMTP disconnected: {addr!r}')
 
 async def smtp_tarpit(port):
     if(verbosity >= 1):
-      print(f"SMTP tarpit enabled on port {port}")
+      print(f'SMTP tarpit enabled on port {port}')
 
     server = await asyncio.start_server(smtp_handler, '0.0.0.0', port, limit=1024)
     async with server:
