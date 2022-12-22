@@ -63,7 +63,6 @@ async def smtp_handler(_reader, writer):
     if (verbosity >= 1):
         addr = writer.get_extra_info('peername')
         print(f'SMTP connected: {addr!r}')
-    writer.write(b'220-%x\r\n' % random.randint(0,2**32))
 
     try:
         while True:
