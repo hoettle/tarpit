@@ -10,6 +10,11 @@ import argparse
 import asyncio
 import random
 
+try:
+    r = random.SystemRandom()
+except:
+    r = random.Random()
+
 verbosity = 0
 
 async def ssh_handler(_reader, writer):
@@ -19,8 +24,8 @@ async def ssh_handler(_reader, writer):
 
     try:
         while True:
-            await asyncio.sleep(10)
-            writer.write(b'%x\r\n' % random.randint(0, 2**32))
+            await asyncio.sleep(r.randint(10,20))
+            writer.write(b'%x\r\n' % r.randint(0, 2**32))
             await writer.drain()
     except ConnectionResetError:
         if (verbosity >= 1):
@@ -42,9 +47,9 @@ async def http_handler(_reader, writer):
     writer.write(b'HTTP/1.1 200 OK\r\n')
     try:
         while True:
-            await asyncio.sleep(10)
-            header = random.randint(0, 2**32)
-            value = random.randint(0, 2**32)
+            await asyncio.sleep(r.randint(10,20))
+            header = r.randint(0, 2**32)
+            value = r.randint(0, 2**32)
             writer.write(b'X-%x: %x\r\n' % (header, value))
             await writer.drain()
     except ConnectionResetError:
@@ -66,8 +71,8 @@ async def smtp_handler(_reader, writer):
 
     try:
         while True:
-            await asyncio.sleep(10)
-            writer.write(b'220-%x\r\n' % random.randint(0, 2**32))
+            await asyncio.sleep(r.randint(10,20))
+            writer.write(b'220-%x\r\n' % r.randint(0, 2**32))
             await writer.drain()
     except ConnectionResetError:
         if (verbosity >= 1):
