@@ -91,7 +91,7 @@ def parse_args():
 
     parser.add_argument('--verbose', '-v',  action='count', default=verbosity)
 
-    parser.add_argument('mode',             action='store', nargs='*', default='all', choices=['ssh','http','smtp', 'all'], help='enable the specified tarpit(s)')
+    parser.add_argument('mode',             action='store', nargs='+', choices=['ssh','http','smtp', 'all'], help='enable the specified tarpit(s)')
 
     parser.add_argument('--ssh-port',       action='store', type=int, default=2222, help='serve the SSH tarpit on the specified port', metavar='port')
 
