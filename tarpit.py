@@ -99,8 +99,6 @@ def parse_args():
 
     parser.add_argument('--smtp-port',      action='store', type=int, default=2525, help='serve the SMTP tarpit on the specified port', metavar='port')
 
-    args = parser.parse_args()
-
     return parser.parse_args()
 
 
