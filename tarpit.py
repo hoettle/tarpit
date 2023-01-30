@@ -48,9 +48,7 @@ async def http_handler(_reader, writer):
     try:
         while True:
             await asyncio.sleep(r.randint(10,20))
-            header = r.randint(0, 2**32)
-            value = r.randint(0, 2**32)
-            writer.write(b'X-%x: %x\r\n' % (header, value))
+            writer.write(b'X-%x: %x\r\n' % (r.randint(0, 2**32), r.randint(0, 2**32)))
             await writer.drain()
     except ConnectionResetError:
         if (verbosity >= 1):
